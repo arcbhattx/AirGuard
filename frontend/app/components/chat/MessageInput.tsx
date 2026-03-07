@@ -20,7 +20,7 @@ export default function MessageInput({
   }
 
   return (
-    <div className="flex items-end gap-3 px-4 py-4 border-t border-[#01BAEF]/10 bg-[#071E28]/80">
+    <div className="flex items-end gap-3 px-4 py-4 border-t border-[#01BAEF]/20 dark:border-transparent bg-[#FBFBFF] dark:bg-[#121212] transition-colors">
 
       <div className="flex-1">
 
@@ -31,7 +31,7 @@ export default function MessageInput({
           disabled={disabled}
           placeholder="Ask about air quality, filters, alerts..."
           rows={1}
-          className="w-full bg-[#0B4F6C]/40 border border-[#01BAEF]/20 rounded-2xl px-4 py-3 text-sm text-[#FBFBFF] placeholder-[#968E85] focus:outline-none focus:border-[#01BAEF]/50 resize-none"
+          className="w-full bg-[#FBFBFF] dark:bg-[#1A1A1A] border border-[#0B4F6C]/30 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-[#0B4F6C] dark:text-white placeholder-[#968E85] focus:outline-none focus:border-[#01BAEF] resize-none shadow-sm transition-colors"
         />
 
       </div>
@@ -41,8 +41,8 @@ export default function MessageInput({
         disabled={!value.trim() || disabled}
         className={`w-10 h-10 rounded-xl flex items-center justify-center transition
         ${value.trim()
-          ? "bg-[#01BAEF] text-[#0B4F6C]"
-          : "bg-[#0B4F6C]/40 text-[#968E85]"
+          ? "bg-[#01BAEF] text-[#0B4F6C] shadow-sm"
+          : "bg-[#968E85]/20 text-[#968E85]"
         }`}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

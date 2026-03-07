@@ -5,9 +5,9 @@ interface Props {
 export default function StatusBar({ status }: Props) {
 
   const colors = {
-    online: "bg-emerald-400",
-    away: "bg-yellow-400",
-    offline: "bg-gray-500",
+    online: "bg-[#01BAEF]",
+    away: "bg-[#968E85]",
+    offline: "bg-[#0B4F6C]",
   };
 
   return (
