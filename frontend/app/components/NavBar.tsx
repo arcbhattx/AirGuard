@@ -1,7 +1,22 @@
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import { User } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function NavBar() {
+interface NavBarProps {
+  user?: User | null;
+}
+
+export default function NavBar({ user }: NavBarProps) {
+  
+  const signOut = async () => {
+    'use server';
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    return redirect('/login');
+  };
+
   return (
     <nav className="w-full h-16 bg-[#FBFBFF] dark:bg-[#121212] flex items-center justify-between px-6 border-b border-[#01BAEF]/20 shadow-sm shrink-0 z-50 relative transition-colors">
       <div className="flex items-center gap-2">
@@ -34,9 +49,17 @@ export default function NavBar() {
         
         <ThemeToggle />
 
-        <button className="bg-[#0B4F6C] dark:bg-white hover:bg-[#01BAEF] dark:hover:bg-[#01BAEF] hover:text-[#0B4F6C] dark:text-[#121212] text-[#FBFBFF] text-sm font-medium px-5 py-2 rounded-xl transition-all shadow-sm">
-          Sign In
-        </button>
+        {user ? (
+          <form action={signOut}>
+            <button className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 dark:border-red-500/30 text-sm font-medium px-4 py-2 rounded-xl transition-all shadow-sm">
+              Sign Out
+            </button>
+          </form>
+        ) : (
+          <Link href="/login" className="bg-[#0B4F6C] dark:bg-white hover:bg-[#01BAEF] dark:hover:bg-[#01BAEF] hover:text-[#0B4F6C] dark:text-[#121212] text-[#FBFBFF] text-sm font-medium px-5 py-2 rounded-xl transition-all shadow-sm inline-block">
+            Sign In
+          </Link>
+        )}
       </div>
     </nav>
   );

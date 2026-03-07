@@ -31,7 +31,7 @@ export default async function Page() {
         Takes up the exact viewport height so the map and chat fit perfectly initially
       */}
       <div className="flex flex-col h-screen w-full relative z-10 shrink-0">
-        <NavBar />
+        <NavBar user={user} />
 
         <div className="flex flex-1 min-h-0 w-full relative">
           <div className="flex-1 h-full min-w-0 transition-all duration-300 relative z-10">
