@@ -14,7 +14,7 @@ export default function AirGuardChat() {
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   const [unread, setUnread] = useState(1);
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
 
@@ -25,21 +25,50 @@ export default function AirGuardChat() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput("");
     setIsTyping(true);
     setShowQuickReplies(false);
 
-    setTimeout(() => {
-      const reply: Message = {
+    try {
+      // Map existing messages to the format the API expects
+      const history = messages.map((msg) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: msg.text }]
+      }));
+
+      const res = await fetch("http://localhost:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, history }),
+      });
+
+      const data = await res.json();
+      
+      if (res.ok && data.reply) {
+        const reply: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          text: data.reply,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, reply]);
+      } else {
+        throw new Error(data.detail || "Error connecting to AI.");
+      }
+    } catch (error) {
+      console.error(error);
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        text: "Processing your air quality request...",
+        text: "Sorry, I am having trouble connecting to my servers right now.",
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, reply]);
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1800);
+    }
   };
 
   return (
