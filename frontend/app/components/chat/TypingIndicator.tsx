@@ -5,7 +5,7 @@ export default function TypingIndicator() {
     <div className="flex items-end gap-3 px-4">
       <Avatar role="assistant" />
 
-      <div className="bg-[#0B4F6C]/60 border border-[#01BAEF]/20 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5">
+      <div className="bg-[#0B4F6C] border border-[#01BAEF]/20 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 shadow-sm">
         {[0, 1, 2].map((i) => (
           <span
             key={i}

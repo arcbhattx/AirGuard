@@ -43,32 +43,37 @@ export default function AirGuardChat() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#FBFBFF]">
-
-      {/* ChatWindow takes full height */}
-      <div className={`flex-1 transition-all duration-300 ${isOpen ? "scale-100 opacity-100" : "scale-90 opacity-0 pointer-events-none"}`}>
-        <ChatWindow
-          messages={messages}
-          isTyping={isTyping}
-          input={input}
-          onInputChange={setInput}
-          onSend={() => sendMessage(input)}
-          onQuickReply={(v) => sendMessage(v)}
-          showQuickReplies={showQuickReplies}
-          onClose={() => setIsOpen(false)}
-        />
+    <>
+      {/* Chat Container */}
+      <div 
+        className={`h-full transition-all duration-300 ease-in-out shrink-0 bg-[#FBFBFF] dark:bg-[#121212] overflow-hidden ${isOpen ? "w-[400px]" : "w-0"}`}
+      >
+        <div className={`w-[400px] h-full transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+          <ChatWindow
+            messages={messages}
+            isTyping={isTyping}
+            input={input}
+            onInputChange={setInput}
+            onSend={() => sendMessage(input)}
+            onQuickReply={(v) => sendMessage(v)}
+            showQuickReplies={showQuickReplies}
+            onClose={() => setIsOpen(false)}
+          />
+        </div>
       </div>
 
       {/* Launcher button if chat is closed */}
       {!isOpen && (
-        <LauncherButton
-          onClick={() => {
-            setIsOpen(true);
-            setUnread(0);
-          }}
-          unread={unread}
-        />
+        <div className="fixed bottom-8 right-8 z-[100]">
+          <LauncherButton
+            onClick={() => {
+              setIsOpen(true);
+              setUnread(0);
+            }}
+            unread={unread}
+          />
+        </div>
       )}
-    </div>
+    </>
   );
 }

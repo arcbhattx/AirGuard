@@ -6,7 +6,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({ onClose }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 bg-[#0B4F6C]/80 backdrop-blur-sm">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 dark:border-transparent bg-[#0B4F6C]/80 dark:bg-[#121212] backdrop-blur-sm transition-colors">
       
       <div className="flex items-center gap-3">
         <div className="relative">
@@ -14,7 +14,7 @@ export default function ChatHeader({ onClose }: ChatHeaderProps) {
             AG
           </div>
 
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#071E28]" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#01BAEF] border-2 border-[#0B4F6C]" />
         </div>
 
         <div className="flex flex-col">
@@ -31,7 +31,7 @@ export default function ChatHeader({ onClose }: ChatHeaderProps) {
         {onClose && (
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#968E85] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#968E85] dark:text-white hover:text-[#01BAEF] dark:hover:text-[#01BAEF] hover:bg-[#01BAEF]/10 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 6 6 18M6 6l12 12"/>
