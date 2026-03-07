@@ -16,7 +16,7 @@ export default function LauncherButton({ onClick, unread }: Props) {
       </svg>
 
       {unread > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#01BAEF] text-[#0B4F6C] text-[10px] font-bold flex items-center justify-center border-2 border-[#071E28]">
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#01BAEF] text-[#0B4F6C] text-[10px] font-bold flex items-center justify-center border-2 border-[#0B4F6C]">
           {unread}
         </span>
       )}

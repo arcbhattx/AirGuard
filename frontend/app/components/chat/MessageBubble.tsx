@@ -16,14 +16,14 @@ export default function MessageBubble({ message }: Props) {
         <div
           className={`px-4 py-3 text-sm leading-relaxed
           ${isAssistant
-            ? "bg-[#0B4F6C]/60 border border-[#01BAEF]/20 text-[#FBFBFF] rounded-2xl rounded-bl-sm"
-            : "bg-[#01BAEF] text-[#0B4F6C] font-medium rounded-2xl rounded-br-sm"
+            ? "bg-[#0B4F6C] dark:bg-transparent border border-[#01BAEF]/20 dark:border-white/20 text-[#FBFBFF] dark:text-white rounded-2xl rounded-bl-sm shadow-sm transition-colors"
+            : "bg-[#01BAEF] dark:bg-[#1A1A1A] text-[#0B4F6C] dark:text-white font-medium rounded-2xl rounded-br-sm shadow-sm transition-colors border border-transparent dark:border-white/10"
           }`}
         >
           {message.text}
         </div>
 
-        <span className="text-[10px] text-[#968E85]">
+        <span className="text-[10px] text-[#968E85] dark:text-white transition-colors">
           {message.timestamp.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",

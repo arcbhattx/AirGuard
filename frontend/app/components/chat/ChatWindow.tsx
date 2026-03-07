@@ -33,15 +33,12 @@ export default function ChatWindow({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [messages, isTyping]);
 
   return (
     <div
-      className="flex flex-col w-[480px] h-[720px] rounded-3xl overflow-hidden border border-[#01BAEF]/15 shadow-2xl shadow-black/40"
-      style={{
-        background: "linear-gradient(160deg, #0d2535 0%, #071E28 60%, #071520 100%)",
-      }}
+      className="flex flex-col w-full h-full overflow-hidden border-l border-[#01BAEF]/15 dark:border-white/10 shadow-2xl shadow-[#0B4F6C]/20 dark:shadow-none bg-[#FBFBFF] dark:bg-[#121212] transition-colors"
     >
       <ChatHeader onClose={onClose} />
 
