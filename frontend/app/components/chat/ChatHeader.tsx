@@ -1,0 +1,45 @@
+import StatusBar from "./StatusBar";
+
+interface ChatHeaderProps {
+  onClose?: () => void;
+}
+
+export default function ChatHeader({ onClose }: ChatHeaderProps) {
+  return (
+    <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 bg-[#0B4F6C]/80 backdrop-blur-sm">
+      
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0B4F6C] to-[#01BAEF] flex items-center justify-center text-[#FBFBFF] font-bold">
+            AG
+          </div>
+
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#071E28]" />
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-[#FBFBFF] font-semibold text-sm tracking-wide">
+            AirGuard AI
+          </span>
+
+          <StatusBar status="online" />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#968E85] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        )}
+
+      </div>
+    </div>
+  );
+}
