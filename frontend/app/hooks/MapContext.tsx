@@ -2,6 +2,11 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
+export interface RouteData {
+  origin: { lat: number; lng: number };
+  destination: { lat: number; lng: number };
+}
+
 interface SafeZone {
   id: string | number;
   lat: number;
@@ -29,6 +34,8 @@ interface MapContextType {
   panTo: (lat: number, lng: number) => void;
   setSafeZones: (zones: SafeZone[]) => void;
   setAQICircles: (circles: AQICircle[]) => void;
+  directionsRoute: RouteData | null;
+  setDirectionsRoute: (route: RouteData | null) => void;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
@@ -39,6 +46,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [safeZones, setSafeZones] = useState<SafeZone[]>([]);
   const [aqiCircles, setAQICircles] = useState<AQICircle[]>([]);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [directionsRoute, setDirectionsRoute] = useState<RouteData | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("airguard_last_coords");
@@ -58,7 +66,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, setCenter, setZoom, panTo, setSafeZones, setAQICircles }}>
+    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, setCenter, setZoom, panTo, setSafeZones, setAQICircles, directionsRoute, setDirectionsRoute }}>
       {children}
     </MapContext.Provider>
   );

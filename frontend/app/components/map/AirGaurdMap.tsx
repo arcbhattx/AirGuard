@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, useLoadScript, Polyline, Marker } from "@react-google-maps/api";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMap } from "@/app/hooks/MapContext";
 
@@ -15,10 +15,11 @@ export default function AirGuardMap() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
   });
 
-  const { center, panTo } = useMap();
+  const { center, panTo, directionsRoute } = useMap();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[] | null>(null);
 
   useEffect(() => {
     const savedAddress = localStorage.getItem("airguard_last_address");
@@ -36,6 +37,63 @@ export default function AirGuardMap() {
   const onLoadMap = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
   }, []);
+
+  useEffect(() => {
+    if (!directionsRoute || !isLoaded) return;
+    
+    const fetchRoute = async () => {
+      try {
+        const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+            "X-Goog-FieldMask": "routes.polyline.encodedPolyline"
+          },
+          body: JSON.stringify({
+            origin: {
+              location: {
+                latLng: {
+                  latitude: directionsRoute.origin.lat,
+                  longitude: directionsRoute.origin.lng,
+                }
+              }
+            },
+            destination: {
+              location: {
+                latLng: {
+                  latitude: directionsRoute.destination.lat,
+                  longitude: directionsRoute.destination.lng,
+                }
+              }
+            },
+            travelMode: "DRIVE"
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error("Google Routes API Error Response:", errText);
+          throw new Error(`Failed to fetch routes: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.routes && data.routes.length > 0) {
+          const encodedPolyline = data.routes[0].polyline.encodedPolyline;
+          
+          // Decode polyline string to LatLngLiteral array using Google's geometry library
+          const decodedPath = window.google.maps.geometry.encoding.decodePath(encodedPolyline);
+          const pathLiteral = decodedPath.map(p => ({ lat: p.lat(), lng: p.lng() }));
+          
+          setRoutePath(pathLiteral);
+        }
+      } catch (err) {
+        console.error("Error fetching route from Routes API:", err);
+      }
+    };
+
+    fetchRoute();
+  }, [directionsRoute, isLoaded]);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -167,7 +225,28 @@ export default function AirGuardMap() {
           disableDefaultUI: true,
           zoomControl: true,
         }}
-      />
+      >
+        {routePath && (
+          <Polyline 
+            path={routePath} 
+            options={{
+              strokeColor: "#01BAEF",
+              strokeWeight: 5,
+              strokeOpacity: 0.8,
+            }}
+          />
+        )}
+        
+        {directionsRoute && (
+          <Marker 
+            position={directionsRoute.destination} 
+            title="Safe Location"
+            icon={{
+              url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            }}
+          />
+        )}
+      </GoogleMap>
     </div>
   );
 }

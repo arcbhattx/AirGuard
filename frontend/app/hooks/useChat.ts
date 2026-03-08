@@ -9,7 +9,7 @@ import { User } from "@supabase/supabase-js";
 import { useMap } from "./MapContext";
 
 export function useChat(user: User | null, initialConversations: any[]) {
-  const { panTo, center, setSafeZones, setAQICircles } = useMap();
+  const { panTo, center, setSafeZones, setAQICircles, setDirectionsRoute } = useMap();
   const [conversations, setConversations] = useState<any[]>(initialConversations);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -124,6 +124,20 @@ export function useChat(user: User | null, initialConversations: any[]) {
 
     // Call backend for AI response
     try {
+      // Get real user location if permitted, fallback to map center
+      let currentLat = center.lat;
+      let currentLng = center.lng;
+      
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+        });
+        currentLat = position.coords.latitude;
+        currentLng = position.coords.longitude;
+      } catch (geoErr) {
+        console.warn("Could not get physical geolocation, using map center fallback:", geoErr);
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
         method: "POST",
         headers: {
@@ -135,8 +149,8 @@ export function useChat(user: User | null, initialConversations: any[]) {
             role: m.role,
             content: m.text,
           })),
-          latitude: center.lat,
-          longitude: center.lng,
+          latitude: currentLat,
+          longitude: currentLng,
         }),
       });
 
@@ -152,6 +166,14 @@ export function useChat(user: User | null, initialConversations: any[]) {
       actions.forEach((action: any) => {
         if (action.type === "relocate_map") {
           panTo(action.payload.lat, action.payload.lng);
+        } else if (action.type === "route_to_safe_area") {
+          const lat = action.payload.lat;
+          const lng = action.payload.lng;
+          setDirectionsRoute({
+            origin: center,
+            destination: { lat, lng }
+          });
+          panTo(lat, lng);
         } else if (action.type === "set_safe_zones") {
           const formattedZones = action.payload.zones.map((z: any, idx: number) => ({
             id: `safe-${Date.now()}-${idx}`,
