@@ -1,4 +1,5 @@
 import StatusBar from "./StatusBar";
+import Image from "next/image";
 
 interface ChatHeaderProps {
   onClose?: () => void;
@@ -24,11 +25,11 @@ export default function ChatHeader({ onClose, onNewChat, onToggleHistory }: Chat
         )}
 
         <div className="relative">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0B4F6C] to-[#01BAEF] flex items-center justify-center text-[#FBFBFF] font-bold">
-            AG
+          <div className="w-14 h-14 flex items-center justify-center relative overflow-visible">
+            <Image src="/assets/airguard.svg" alt="AirGuard AI" fill className="object-contain" />
           </div>
 
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#01BAEF] border-2 border-[#0B4F6C]" />
+          <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-[#01BAEF] border-2 border-[#0B4F6C]" />
         </div>
 
         <div className="flex flex-col">
