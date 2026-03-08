@@ -9,7 +9,7 @@ import { User } from "@supabase/supabase-js";
 import { useMap } from "./MapContext";
 
 export function useChat(user: User | null, initialConversations: any[]) {
-  const { panTo, center, setSafeZones, setAQICircles, setDirectionsRoute } = useMap();
+  const { panTo, center, setSafeZones, setAQICircles, setDirectionsRoute, customLocation } = useMap();
   const [conversations, setConversations] = useState<any[]>(initialConversations);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -124,18 +124,21 @@ export function useChat(user: User | null, initialConversations: any[]) {
 
     // Call backend for AI response
     try {
-      // Get real user location if permitted, fallback to map center
-      let currentLat = center.lat;
-      let currentLng = center.lng;
+      // Use custom pin location if set
+      let currentLat = customLocation?.lat || center.lat;
+      let currentLng = customLocation?.lng || center.lng;
       
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
-        });
-        currentLat = position.coords.latitude;
-        currentLng = position.coords.longitude;
-      } catch (geoErr) {
-        console.warn("Could not get physical geolocation, using map center fallback:", geoErr);
+      // Only try physical geolocation if they haven't explicitly pinned a custom location
+      if (!customLocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+          currentLat = position.coords.latitude;
+          currentLng = position.coords.longitude;
+        } catch (geoErr) {
+          console.warn("Could not get physical geolocation, using map center fallback:", geoErr);
+        }
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
@@ -170,7 +173,7 @@ export function useChat(user: User | null, initialConversations: any[]) {
           const lat = action.payload.lat;
           const lng = action.payload.lng;
           setDirectionsRoute({
-            origin: center,
+            origin: { lat: currentLat, lng: currentLng },
             destination: { lat, lng }
           });
           panTo(lat, lng);
@@ -227,7 +230,7 @@ export function useChat(user: User | null, initialConversations: any[]) {
       };
       setMessages((prev) => [...prev, errorMsg]);
     }
-  }, [activeConversationId, messages, supabase, user?.id]);
+  }, [activeConversationId, messages, supabase, user?.id, center, customLocation, panTo, setSafeZones, setAQICircles, setDirectionsRoute]);
 
   return {
     messages,

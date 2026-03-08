@@ -29,11 +29,13 @@ interface MapContextType {
   zoom: number;
   safeZones: SafeZone[];
   aqiCircles: AQICircle[];
+  customLocation: { lat: number; lng: number } | null;
   setCenter: (center: { lat: number; lng: number }) => void;
   setZoom: (zoom: number) => void;
   panTo: (lat: number, lng: number) => void;
   setSafeZones: (zones: SafeZone[]) => void;
   setAQICircles: (circles: AQICircle[]) => void;
+  setCustomLocation: (location: { lat: number; lng: number } | null) => void;
   directionsRoute: RouteData | null;
   setDirectionsRoute: (route: RouteData | null) => void;
   mapInstance: google.maps.Map | null;
@@ -47,6 +49,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [zoom, setZoom] = useState(13);
   const [safeZones, setSafeZones] = useState<SafeZone[]>([]);
   const [aqiCircles, setAQICircles] = useState<AQICircle[]>([]);
+  const [customLocation, setCustomLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [directionsRoute, setDirectionsRoute] = useState<RouteData | null>(null);
 
@@ -54,7 +57,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("airguard_last_coords");
     if (saved) {
       try {
-        setCenter(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setCenter(parsed);
+        setCustomLocation(parsed); // Restore pin location if available
       } catch (e) {
         console.error("Error loading saved coords", e);
       }
@@ -70,7 +75,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, setCenter, setZoom, panTo, setSafeZones, setAQICircles, directionsRoute, setDirectionsRoute, mapInstance, setMapInstance }}>
+    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, customLocation, setCenter, setZoom, panTo, setSafeZones, setAQICircles, setCustomLocation, directionsRoute, setDirectionsRoute, mapInstance, setMapInstance }}>
       {children}
     </MapContext.Provider>
   );

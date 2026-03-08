@@ -102,7 +102,28 @@ class OpenAIAgent:
         try:
             response = requests.post(url, headers=headers, json=payload)
             if response.status_code == 403:
-                print("DEBUG: Places API Disabled. Returning Mock data.")
+                print("DEBUG: Places API Disabled. Using Overpass API fallback.")
+                import urllib.parse
+                overpass_query = f'[out:json];node(around:5000,{lat},{lng})["amenity"~"library|hospital|clinic|community_centre"];out 3;'
+                try:
+                    op_resp = requests.get(f'http://overpass-api.de/api/interpreter?data={urllib.parse.quote(overpass_query)}')
+                    op_resp.raise_for_status()
+                    op_data = op_resp.json()
+                    results = []
+                    for el in op_data.get('elements', []):
+                        tags = el.get('tags', {})
+                        name = tags.get('name', 'Community Safe Center')
+                        results.append({
+                            "name": name,
+                            "address": f"{lat}, {lng} (approx)",
+                            "lat": el.get('lat'),
+                            "lng": el.get('lon')
+                        })
+                    if results:
+                        return {"places": results}
+                except Exception as op_err:
+                    print(f"DEBUG: Overpass API Call Failed: {str(op_err)}")
+                # absolute fallback if overpass also fails
                 return {
                     "places": [
                         {
@@ -134,7 +155,12 @@ class OpenAIAgent:
         
         system_content = self.system_prompt
         if lat is not None and lng is not None:
-            system_content += f"\n\nThe user's current map coordinates are: Lat {lat}, Lng {lng}."
+            system_content += (
+                f"\n\nCRITICAL: The user's CURRENT active coordinates are EXACTLY Lat {lat}, Lng {lng}. "
+                f"You MUST use these exact coordinates as the origin for all spatial tool calls "
+                f"(e.g., finding safe places, air quality). Do NOT reuse old locations from conversation history, "
+                f"as the user may have moved or changed their pinned location since the last message."
+            )
             
         messages = [{"role": "system", "content": system_content}]
         if history:

@@ -18,7 +18,7 @@ export default function AirGuardMap() {
     libraries: libraries,
   });
 
-  const { center, panTo, directionsRoute, setMapInstance } = useMap();
+  const { center, panTo, directionsRoute, setMapInstance, customLocation, setCustomLocation } = useMap();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -77,9 +77,26 @@ export default function AirGuardMap() {
 
         if (!response.ok) {
           const errText = await response.text();
-          console.error("Google Routes API Error Response:", errText);
           if (response.status === 403) {
-            console.log("Mocking route because API is disabled");
+            console.warn("Google Routes API is disabled (403). Using free OSRM fallback.");
+            try {
+              // OSRM expects coordinates in lng,lat format
+              const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${directionsRoute.origin.lng},${directionsRoute.origin.lat};${directionsRoute.destination.lng},${directionsRoute.destination.lat}?overview=full&geometries=polyline`;
+              const osrmRes = await fetch(osrmUrl);
+              const osrmData = await osrmRes.json();
+              
+              if (osrmData.code === "Ok" && osrmData.routes.length > 0) {
+                const encodedPolyline = osrmData.routes[0].geometry;
+                const decodedPath = window.google.maps.geometry.encoding.decodePath(encodedPolyline);
+                const pathLiteral = decodedPath.map(p => ({ lat: p.lat(), lng: p.lng() }));
+                setRoutePath(pathLiteral);
+                return;
+              }
+            } catch (osrmErr) {
+               console.error("OSRM Free Routing API Fallback Failed", osrmErr);
+            }
+            
+            // Absolute fallback: straight line
             setRoutePath([
               {lat: directionsRoute.origin.lat, lng: directionsRoute.origin.lng}, 
               {lat: directionsRoute.destination.lat, lng: directionsRoute.destination.lng}
@@ -132,6 +149,7 @@ export default function AirGuardMap() {
         localStorage.setItem("airguard_last_address", formattedAddress);
         localStorage.setItem("airguard_last_coords", JSON.stringify({ lat, lng }));
 
+        setCustomLocation({ lat, lng });
         panTo(lat, lng);
         
         if (results[0].geometry.viewport) {
@@ -233,6 +251,11 @@ export default function AirGuardMap() {
         center={center}
         zoom={13}
         onLoad={onLoadMap}
+        onClick={(e) => {
+          if (e.latLng) {
+            setCustomLocation({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+          }
+        }}
         options={{
           disableDefaultUI: true,
           zoomControl: true,
@@ -255,6 +278,16 @@ export default function AirGuardMap() {
             title="Safe Location"
             icon={{
               url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            }}
+          />
+        )}
+        
+        {customLocation && (
+          <Marker 
+            position={customLocation} 
+            title="Your Custom Location"
+            icon={{
+              url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
             }}
           />
         )}
