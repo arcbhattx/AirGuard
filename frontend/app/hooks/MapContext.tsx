@@ -36,6 +36,8 @@ interface MapContextType {
   setAQICircles: (circles: AQICircle[]) => void;
   directionsRoute: RouteData | null;
   setDirectionsRoute: (route: RouteData | null) => void;
+  mapInstance: google.maps.Map | null;
+  setMapInstance: (map: google.maps.Map | null) => void;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
@@ -61,12 +63,14 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const panTo = (lat: number, lng: number) => {
     setCenter({ lat, lng });
-    mapInstance?.panTo({ lat, lng });
-    mapInstance?.setZoom(14);
+    if (mapInstance) {
+      mapInstance.panTo({ lat, lng });
+      mapInstance.setZoom(14);
+    }
   };
 
   return (
-    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, setCenter, setZoom, panTo, setSafeZones, setAQICircles, directionsRoute, setDirectionsRoute }}>
+    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, setCenter, setZoom, panTo, setSafeZones, setAQICircles, directionsRoute, setDirectionsRoute, mapInstance, setMapInstance }}>
       {children}
     </MapContext.Provider>
   );

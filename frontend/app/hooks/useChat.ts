@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Message } from "@/app/types/chat";
 import { SAMPLE_MESSAGES } from "@/app/constants/chat";
 import { createClient } from "@/utils/supabase/client";
@@ -16,7 +16,7 @@ export function useChat(user: User | null, initialConversations: any[]) {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const refreshConversations = useCallback(async () => {
     const { data } = await supabase

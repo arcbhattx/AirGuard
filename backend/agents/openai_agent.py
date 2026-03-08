@@ -101,6 +101,18 @@ class OpenAIAgent:
         }
         try:
             response = requests.post(url, headers=headers, json=payload)
+            if response.status_code == 403:
+                print("DEBUG: Places API Disabled. Returning Mock data.")
+                return {
+                    "places": [
+                        {
+                            "name": "Local Community Safe Center",
+                            "address": "100 Relief Way",
+                            "lat": lat + 0.01,
+                            "lng": lng - 0.02
+                        }
+                    ]
+                }
             response.raise_for_status()
             data = response.json()
             places = data.get("places", [])
@@ -304,7 +316,7 @@ class OpenAIAgent:
                     elif function_name == "assess_health_risk":
                         # Glue logic: Call the standalone ML service
                         try:
-                            ml_url = "http://localhost:8000/predict"
+                            ml_url = "http://localhost:8001/predict"
                             ml_payload = {
                                 "aqi_24h": function_args.get("aqi_24h"),
                                 "respiratory_history": function_args.get("respiratory_history"),

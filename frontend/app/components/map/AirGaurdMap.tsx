@@ -10,12 +10,15 @@ const containerStyle = {
   height: "100%",
 };
 
+const libraries: ("geometry")[] = ["geometry"];
+
 export default function AirGuardMap() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+    libraries: libraries,
   });
 
-  const { center, panTo, directionsRoute } = useMap();
+  const { center, panTo, directionsRoute, setMapInstance } = useMap();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -36,7 +39,8 @@ export default function AirGuardMap() {
 
   const onLoadMap = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
-  }, []);
+    setMapInstance(mapInstance);
+  }, [setMapInstance]);
 
   useEffect(() => {
     if (!directionsRoute || !isLoaded) return;
@@ -74,6 +78,14 @@ export default function AirGuardMap() {
         if (!response.ok) {
           const errText = await response.text();
           console.error("Google Routes API Error Response:", errText);
+          if (response.status === 403) {
+            console.log("Mocking route because API is disabled");
+            setRoutePath([
+              {lat: directionsRoute.origin.lat, lng: directionsRoute.origin.lng}, 
+              {lat: directionsRoute.destination.lat, lng: directionsRoute.destination.lng}
+            ]);
+            return;
+          }
           throw new Error(`Failed to fetch routes: ${response.status} ${response.statusText}`);
         }
 

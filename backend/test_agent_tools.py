@@ -8,7 +8,7 @@ def test_agent():
     # Test case: User wants to move to a safe spot.
     print("Asking to move to a cleaner area...")
     result = agent.generate_response(
-        "The air here is bad. Move the map to a cleaner spot nearby.",
+        "THERE IS SMOKE EVERYWHERE HELP WHERE DO I GO",
         lat=37.3,
         lng=-120.48
     )

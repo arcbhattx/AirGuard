@@ -10,4 +10,4 @@ evaluate:
 	python3 -m evaluation.evaluate
 
 serve:
-	uvicorn serving.app:app --host 0.0.0.0 --port 8000 --reload
+	uvicorn serving.app:app --host 0.0.0.0 --port 8001 --reload
