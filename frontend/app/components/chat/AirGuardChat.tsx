@@ -9,12 +9,13 @@ import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 
 interface AirGuardChatProps {
-  user: User;
+  user: User | null;
   initialConversations: any[]; // We can cast this properly, but any is fine for now
 }
 
 export default function AirGuardChat({ user, initialConversations }: AirGuardChatProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [conversations, setConversations] = useState<any[]>(initialConversations);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -30,8 +31,9 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
   useEffect(() => {
     async function loadMessages() {
       if (!activeConversationId) {
-        // Fallback to sample messages if it's a completely new user
+        // Fallback to sample messages if it's a completely new user or explicitly creating a new chat
         setMessages(SAMPLE_MESSAGES);
+        setShowQuickReplies(true);
         return;
       }
 
@@ -52,11 +54,21 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
         setShowQuickReplies(false);
       } else {
         setMessages(SAMPLE_MESSAGES);
+        setShowQuickReplies(true);
       }
     }
 
     loadMessages();
   }, [activeConversationId, supabase]);
+
+  const handleNewChat = () => {
+    if (!user) return;
+    setActiveConversationId(null);
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setActiveConversationId(id);
+  };
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
@@ -64,16 +76,17 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
 
     // Determine current conversation id, create one if it doesn't exist yet
     let convId = activeConversationId;
-    if (!convId) {
+    if (!convId && user) {
       const { data: newConv } = await supabase
         .from("conversations")
-        .insert({ user_id: user.id, title: "New Chat" })
-        .select("id")
+        .insert({ user_id: user.id, title: text.substring(0, 30) + "..." })
+        .select("*")
         .single();
       
       if (newConv) {
         convId = newConv.id;
         setActiveConversationId(newConv.id);
+        setConversations((prev) => [newConv, ...prev]);
       }
     }
 
@@ -141,6 +154,10 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
             onQuickReply={(v) => sendMessage(v)}
             showQuickReplies={showQuickReplies}
             onClose={() => setIsOpen(false)}
+            onNewChat={user ? handleNewChat : undefined}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={handleSelectConversation}
           />
         </div>
       </div>

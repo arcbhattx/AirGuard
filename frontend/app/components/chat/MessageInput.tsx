@@ -20,7 +20,7 @@ export default function MessageInput({
   }
 
   return (
-    <div className="flex items-end gap-3 px-4 py-4 border-t border-[#01BAEF]/20 dark:border-transparent bg-[#FBFBFF] dark:bg-[#121212] transition-colors">
+    <div className="flex items-center gap-3 px-4 py-4 border-t border-[#01BAEF]/20 dark:border-transparent bg-[#FBFBFF] dark:bg-[#121212] transition-colors">
 
       <div className="flex-1">
 
@@ -41,12 +41,12 @@ export default function MessageInput({
         disabled={!value.trim() || disabled}
         className={`w-10 h-10 rounded-xl flex items-center justify-center transition
         ${value.trim()
-          ? "bg-[#01BAEF] text-[#0B4F6C] shadow-sm"
-          : "bg-[#968E85]/20 text-[#968E85]"
-        }`}
+            ? "bg-[#01BAEF] text-[#0B4F6C] shadow-sm"
+            : "bg-[#968E85]/20 text-[#968E85]"
+          }`}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="m22 2-7 20-4-9-9-4Z"/>
+          <path d="m22 2-7 20-4-9-9-4Z" />
         </svg>
       </button>
 
