@@ -1,0 +1,47 @@
+﻿Initializing agent...
+Asking about air quality near Merced...
+DEBUG: Generating response for: What's the air quality like in...
+DEBUG: AI calling tool get_air_quality with {'lat': 37.3, 'lng': -120.48}
+DEBUG: API Status Code: 403
+DEBUG: API Body: {
+  "error": {
+    "code": 403,
+    "message": "Air Quality API has not been used in project 596861758126 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/airquality.googleapis.com/overview?project=596861758126 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "SERVICE_DISABLED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "serviceTitle": "Air Quality API",
+          "service": "airquality.googleapis.com",
+          "consumer": "projects/596861758126",
+          "containerInfo": "596861758126",
+          "activationUrl": "https://console.developers.google.com/apis/api/airquality.googleapis.com/overview?project=596861758126"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Air Quality API has not been used in project 596861758126 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/airquality.googleapis.com/overview?project=596861758126 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Google developers console API activation",
+            "url": "https://console.developers.google.com/apis/api/airquality.googleapis.com/overview?project=596861758126"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+DEBUG: API Call Failed: 403 Client Error: Forbidden for url: https://airquality.googleapis.com/v1/currentConditions:lookup?key=AIzaSyBO_PGgZu0ZzX7TpPTCS2w6xgGBs4zOfjc
+
+AI Response:
+I currently cannot access the air quality data for Merced due to a restriction. However, you can check local air quality websites or apps like AirNow or the World Air Quality Index for real-time information. If you'd like me to help you find a safer area with better air quality, please provide another location or coordinates.
+
+Actions taken:
