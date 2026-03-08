@@ -96,7 +96,7 @@ class OpenAIAgent:
                 "type": "function",
                 "function": {
                     "name": "relocate_map",
-                    "description": "Moves the user's map view to a specific coordinate. Use this to show safe areas or better locations.",
+                    "description": "Moves the user's map view to a specific coordinate. Use this to REROUTE users to safe locations.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -105,59 +105,6 @@ class OpenAIAgent:
                             "label": {"type": "string", "description": "Explain why we moved here"}
                         },
                         "required": ["lat", "lng"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "set_safe_zones",
-                    "description": "Sets a list of safe zones with good air quality on the user's map. Only use coordinates within California.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "zones": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "lat": {"type": "number"},
-                                        "lng": {"type": "number"},
-                                        "label": {"type": "string"},
-                                        "aqi": {"type": "number"}
-                                    },
-                                    "required": ["lat", "lng", "label"]
-                                }
-                            }
-                        },
-                        "required": ["zones"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "set_aqi_circles",
-                    "description": "Visualizes air quality data on the map using colored circles. Green=Good, Yellow=Moderate, Orange=Unhealthy for Sensitive, Red=Unhealthy, Purple=Very Unhealthy, Maroon=Hazardous.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "circles": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "lat": {"type": "number"},
-                                        "lng": {"type": "number"},
-                                        "radius": {"type": "number", "description": "Radius in meters (e.g. 2000)"},
-                                        "color": {"type": "string", "description": "Hex color or valid CSS color"},
-                                        "aqi": {"type": "number"}
-                                    },
-                                    "required": ["lat", "lng", "radius", "color"]
-                                }
-                            }
-                        },
-                        "required": ["circles"]
                     }
                 }
             }
@@ -204,30 +151,6 @@ class OpenAIAgent:
                             "role": "tool",
                             "name": function_name,
                             "content": "Map relocated command sent."
-                        })
-                    
-                    elif function_name == "set_safe_zones":
-                        actions.append({
-                            "type": "set_safe_zones",
-                            "payload": function_args
-                        })
-                        messages.append({
-                            "tool_call_id": tool_call.id,
-                            "role": "tool",
-                            "name": function_name,
-                            "content": "Safe zones set on map."
-                        })
-                    
-                    elif function_name == "set_aqi_circles":
-                        actions.append({
-                            "type": "set_aqi_circles",
-                            "payload": function_args
-                        })
-                        messages.append({
-                            "tool_call_id": tool_call.id,
-                            "role": "tool",
-                            "name": function_name,
-                            "content": "AQI circles set on map."
                         })
 
                 # Follow up to get final text

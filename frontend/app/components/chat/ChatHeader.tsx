@@ -5,10 +5,9 @@ interface ChatHeaderProps {
   onToggleHistory: () => void;
   onClose?: () => void;
   onNewChat?: () => void;
-  onToggleHistory?: () => void;
 }
 
-export default function ChatHeader({ onToggleHistory, onClose }: ChatHeaderProps) {
+export default function ChatHeader({ onToggleHistory, onClose, onNewChat }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 dark:border-transparent bg-[#0B4F6C]/80 dark:bg-[#121212] backdrop-blur-sm transition-colors relative z-10">
       
