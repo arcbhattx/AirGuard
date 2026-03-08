@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# Models & Data (Optional, but usually ignored in git if large)
+# Keep models if small (1.2MB is fine for triage_v1.0.pkl)
+data/*
+!data/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store

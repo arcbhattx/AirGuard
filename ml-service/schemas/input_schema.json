@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ML Model Input Schema",
+  "type": "object",
+  "properties": {
+    "aqi_24h": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000,
+      "description": "24-hour average Air Quality Index"
+    },
+    "respiratory_history": {
+      "type": "boolean",
+      "description": "Whether the user has a history of respiratory issues"
+    },
+    "distance_to_clean_air_center": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Distance to the nearest clean air center in miles"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "User's age"
+    }
+  },
+  "required": ["aqi_24h", "respiratory_history", "distance_to_clean_air_center", "age"]
+}
