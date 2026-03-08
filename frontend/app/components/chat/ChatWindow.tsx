@@ -22,6 +22,10 @@ interface Props {
   onQuickReply: (v: string) => void;
   showQuickReplies: boolean;
   onClose?: () => void;
+  onNewChat?: () => void;
+  conversations?: any[];
+  activeConversationId?: string | null;
+  onSelectConversation?: (id: string) => void;
 }
 
 export default function ChatWindow({
@@ -37,13 +41,30 @@ export default function ChatWindow({
   onQuickReply,
   showQuickReplies,
   onClose,
+  onNewChat,
+  conversations = [],
+  activeConversationId,
+  onSelectConversation,
 }: Props) {
   const [showHistory, setShowHistory] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [messages, isTyping]);
+
+  const toggleHistory = () => setIsHistoryOpen((prev) => !prev);
+
+  const handleNewChat = () => {
+    setIsHistoryOpen(false);
+    onNewChat?.();
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setIsHistoryOpen(false);
+    onSelectConversation?.(id);
+  };
 
   return (
     <div

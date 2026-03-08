@@ -88,6 +88,10 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
               Sign In with Google
             </button>
           </form>
+
+          <a href="/" className="mt-6 text-sm font-medium text-[#01BAEF]/80 hover:text-[#01BAEF] transition-colors decoration-transparent hover:underline underline-offset-4">
+            Continue as Guest
+          </a>
         </div>
       </div>
     </div>

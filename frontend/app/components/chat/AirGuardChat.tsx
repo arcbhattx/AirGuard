@@ -7,7 +7,7 @@ import { User } from "@supabase/supabase-js";
 import { useChat } from "@/app/hooks/useChat";
 
 interface AirGuardChatProps {
-  user: User;
+  user: User | null;
   initialConversations: any[]; // We can cast this properly, but any is fine for now
 }
 
@@ -52,6 +52,10 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
             onQuickReply={(v) => handleSend(v)}
             showQuickReplies={showQuickReplies}
             onClose={() => setIsOpen(false)}
+            onNewChat={user ? handleNewChat : undefined}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={handleSelectConversation}
           />
         </div>
       </div>
