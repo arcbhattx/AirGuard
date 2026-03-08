@@ -11,7 +11,7 @@ app = FastAPI(title="AirGuard Backend")
 # Allow CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "https://air-guard-frontend-jnpqok40q-archits-projects-97091d19.vercel.app/"], # In production, replace with actual frontend URL
+    allow_origins=["https://air-guard-frontend-jnpqok40q-archits-projects-97091d19.vercel.app/"], # In production, replace with actual frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
