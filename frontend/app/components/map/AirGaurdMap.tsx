@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap, Marker, Circle, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMap } from "@/app/hooks/MapContext";
 
@@ -15,7 +15,7 @@ export default function AirGuardMap() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
   });
 
-  const { center, panTo, safeZones, aqiCircles } = useMap();
+  const { center, panTo } = useMap();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -167,22 +167,7 @@ export default function AirGuardMap() {
           disableDefaultUI: true,
           zoomControl: true,
         }}
-      >
-        {aqiCircles.map((circle) => (
-          <Circle
-            key={circle.id}
-            center={{ lat: circle.lat, lng: circle.lng }}
-            radius={circle.radius}
-            options={{
-              fillColor: circle.color,
-              fillOpacity: 0.35,
-              strokeColor: circle.color,
-              strokeOpacity: 0.8,
-              strokeWeight: 2,
-            }}
-          />
-        ))}
-      </GoogleMap>
+      />
     </div>
   );
 }

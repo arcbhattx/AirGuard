@@ -22,15 +22,11 @@ interface Props {
   onQuickReply: (v: string) => void;
   showQuickReplies: boolean;
   onClose?: () => void;
-  onNewChat?: () => void;
-  conversations?: any[];
-  activeConversationId?: string | null;
-  onSelectConversation?: (id: string) => void;
 }
 
 export default function ChatWindow({
   messages,
-  conversations,
+  conversations = [],
   activeConversationId,
   onSelectConversation,
   onNewChat,
@@ -41,30 +37,13 @@ export default function ChatWindow({
   onQuickReply,
   showQuickReplies,
   onClose,
-  onNewChat,
-  conversations = [],
-  activeConversationId,
-  onSelectConversation,
 }: Props) {
   const [showHistory, setShowHistory] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [messages, isTyping]);
-
-  const toggleHistory = () => setIsHistoryOpen((prev) => !prev);
-
-  const handleNewChat = () => {
-    setIsHistoryOpen(false);
-    onNewChat?.();
-  };
-
-  const handleSelectConversation = (id: string) => {
-    setIsHistoryOpen(false);
-    onSelectConversation?.(id);
-  };
 
   return (
     <div
@@ -82,6 +61,7 @@ export default function ChatWindow({
       <ChatHeader 
         onToggleHistory={() => setShowHistory(!showHistory)} 
         onClose={onClose} 
+        onNewChat={onNewChat}
       />
 
       <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4">

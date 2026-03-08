@@ -8,7 +8,7 @@ import { User } from "@supabase/supabase-js";
 
 import { useMap } from "./MapContext";
 
-export function useChat(user: User, initialConversations: any[]) {
+export function useChat(user: User | null, initialConversations: any[]) {
   const { panTo, center, setSafeZones, setAQICircles } = useMap();
   const [conversations, setConversations] = useState<any[]>(initialConversations);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,13 +22,13 @@ export function useChat(user: User, initialConversations: any[]) {
     const { data } = await supabase
       .from("conversations")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
     
     if (data) {
       setConversations(data);
     }
-  }, [supabase, user.id]);
+  }, [supabase, user?.id]);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -81,7 +81,7 @@ export function useChat(user: User, initialConversations: any[]) {
     let convId = activeConversationId;
 
     // Create new conversation if needed
-    if (!convId) {
+    if (!convId && user) {
       const { data: newConv, error: convError } = await supabase
         .from("conversations")
         .insert({ user_id: user.id, title: trimmed.slice(0, 30) + (trimmed.length > 30 ? "..." : "") })
@@ -205,7 +205,7 @@ export function useChat(user: User, initialConversations: any[]) {
       };
       setMessages((prev) => [...prev, errorMsg]);
     }
-  }, [activeConversationId, messages, supabase, user.id]);
+  }, [activeConversationId, messages, supabase, user?.id]);
 
   return {
     messages,

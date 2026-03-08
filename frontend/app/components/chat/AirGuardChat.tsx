@@ -52,10 +52,6 @@ export default function AirGuardChat({ user, initialConversations }: AirGuardCha
             onQuickReply={(v) => handleSend(v)}
             showQuickReplies={showQuickReplies}
             onClose={() => setIsOpen(false)}
-            onNewChat={user ? handleNewChat : undefined}
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onSelectConversation={handleSelectConversation}
           />
         </div>
       </div>
