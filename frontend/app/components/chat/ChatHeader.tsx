@@ -1,15 +1,17 @@
 import StatusBar from "./StatusBar";
+import { History, X } from "lucide-react";
 
 interface ChatHeaderProps {
+  onToggleHistory: () => void;
   onClose?: () => void;
   onNewChat?: () => void;
   onToggleHistory?: () => void;
 }
 
-export default function ChatHeader({ onClose, onNewChat, onToggleHistory }: ChatHeaderProps) {
+export default function ChatHeader({ onToggleHistory, onClose }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 dark:border-transparent bg-[#0B4F6C]/80 dark:bg-[#121212] backdrop-blur-sm transition-colors">
-
+    <div className="flex items-center justify-between px-5 py-4 border-b border-[#01BAEF]/10 dark:border-transparent bg-[#0B4F6C]/80 dark:bg-[#121212] backdrop-blur-sm transition-colors relative z-10">
+      
       <div className="flex items-center gap-3">
         {onToggleHistory && (
           <button
@@ -41,6 +43,13 @@ export default function ChatHeader({ onClose, onNewChat, onToggleHistory }: Chat
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={onToggleHistory}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-[#FBFBFF] hover:text-[#01BAEF] hover:bg-[#FBFBFF]/10 transition-all border border-[#FBFBFF]/10 hover:border-[#01BAEF]/30 group"
+          title="History"
+        >
+          <History size={18} className="group-hover:rotate-12 transition-transform" />
+        </button>
 
         {onNewChat && (
           <button
@@ -57,12 +66,10 @@ export default function ChatHeader({ onClose, onNewChat, onToggleHistory }: Chat
         {onClose && (
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#968E85] dark:text-white hover:text-[#01BAEF] dark:hover:text-[#01BAEF] hover:bg-[#01BAEF]/10 transition-colors"
-            title="Close"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-[#FBFBFF] hover:text-red-400 hover:bg-red-400/10 transition-all border border-[#FBFBFF]/10 hover:border-red-400/30 group"
+            title="Close Chat"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
+            <X size={20} />
           </button>
         )}
 

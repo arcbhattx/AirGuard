@@ -1,33 +1,29 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { GoogleMap, Marker, Circle, useLoadScript } from "@react-google-maps/api";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { useMap } from "@/app/hooks/MapContext";
 
 const containerStyle = {
   width: "100%",
   height: "100%",
 };
 
-const initialCenter = {
-  lat: 37.3022,
-  lng: -120.4820,
-};
-
-const safeSpots = [
-  { id: 1, lat: 37.305, lng: -120.48 },
-  { id: 2, lat: 37.30, lng: -120.47 },
-];
-
 export default function AirGuardMap() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
   });
 
+  const { center, panTo, safeZones, aqiCircles } = useMap();
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [center, setCenter] = useState(initialCenter);
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const savedAddress = localStorage.getItem("airguard_last_address");
+    if (savedAddress) setSearchValue(savedAddress);
+  }, []);
 
   const [filters, setFilters] = useState({
     aqi: true,
@@ -48,23 +44,33 @@ export default function AirGuardMap() {
     setIsSearching(true);
     const geocoder = new window.google.maps.Geocoder();
     
-    geocoder.geocode({ address: searchValue }, (results, status) => {
+    // Restrict search to California
+    geocoder.geocode({ 
+      address: searchValue,
+      componentRestrictions: {
+        administrativeArea: "CA",
+        country: "US"
+      }
+    }, (results, status) => {
       if (status === "OK" && results && results.length > 0) {
         const location = results[0].geometry.location;
         const lat = location.lat();
         const lng = location.lng();
+        const formattedAddress = results[0].formatted_address;
         
-        setCenter({ lat, lng });
-        map?.panTo({ lat, lng });
+        // Save address to local storage or state for persistence
+        localStorage.setItem("airguard_last_address", formattedAddress);
+        localStorage.setItem("airguard_last_coords", JSON.stringify({ lat, lng }));
+
+        panTo(lat, lng);
         
-        // Use bounds if available for better zoom level, otherwise default to 14
         if (results[0].geometry.viewport) {
           map?.fitBounds(results[0].geometry.viewport);
         } else {
           map?.setZoom(14);
         }
       } else {
-        alert("Location not found. Please try another search.");
+        alert("Location not found in California. Please try another search.");
       }
       setIsSearching(false);
     });
@@ -162,8 +168,19 @@ export default function AirGuardMap() {
           zoomControl: true,
         }}
       >
-        {safeSpots.map((spot) => (
-          <Marker key={spot.id} position={{ lat: spot.lat, lng: spot.lng }} />
+        {aqiCircles.map((circle) => (
+          <Circle
+            key={circle.id}
+            center={{ lat: circle.lat, lng: circle.lng }}
+            radius={circle.radius}
+            options={{
+              fillColor: circle.color,
+              fillOpacity: 0.35,
+              strokeColor: circle.color,
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+            }}
+          />
         ))}
       </GoogleMap>
     </div>
