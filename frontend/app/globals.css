@@ -2,6 +2,7 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant light (&:is(.light *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

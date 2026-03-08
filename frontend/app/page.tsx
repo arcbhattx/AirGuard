@@ -9,19 +9,20 @@ export default async function Page() {
   // 1. Initialize Supabase Server Client
   const supabase = await createClient();
 
-  // 2. Secure the Dashboard: Check if the user is authenticated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  // 2. Check if the user is authenticated (Optional for Guest Mode)
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (authError || !user) {
-    redirect('/login');
+  // 3. Fetch user's existing conversations from the DB (if logged in)
+  let conversations: any[] = [];
+  if (user) {
+    const { data } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    conversations = data || [];
   }
-
-  // 3. Fetch user's existing conversations from the DB
-  const { data: conversations } = await supabase
-    .from('conversations')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#FBFBFF] dark:bg-[#121212] transition-colors overflow-x-hidden">

@@ -9,7 +9,7 @@ interface NavBarProps {
 }
 
 export default function NavBar({ user }: NavBarProps) {
-  
+
   const signOut = async () => {
     'use server';
     const supabase = await createClient();
@@ -22,12 +22,12 @@ export default function NavBar({ user }: NavBarProps) {
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0B4F6C] dark:from-white to-[#01BAEF] flex items-center justify-center shadow-sm">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-[#FBFBFF] dark:text-[#121212]" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
         <span className="text-xl font-bold text-[#0B4F6C] dark:text-white tracking-wide relative top-[1px] transition-colors">AirGuard</span>
       </div>
-      
+
       <div className="flex items-center gap-6">
         <Link href="#about" className="text-sm font-semibold text-[#01BAEF] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
           About
@@ -44,9 +44,9 @@ export default function NavBar({ user }: NavBarProps) {
         <Link href="#" className="text-sm font-medium text-[#968E85] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
           Settings
         </Link>
-        
+
         <div className="w-px h-6 bg-[#01BAEF]/20 mx-2" />
-        
+
         <ThemeToggle />
 
         {user ? (
