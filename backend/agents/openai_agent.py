@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -19,7 +20,12 @@ class OpenAIAgent:
         # System instructions
         self.system_prompt = (
             "You are an intelligent Health Risk Triage Assistant. Your primary goal is to help users assess their personal health risk based on their current environmental conditions (specifically air quality) and their personal medical background.\n\n"
-            "**EMERGENCY / DISTRESS OVERRIDE (CRITICAL):** If the user's input indicates severe distress, panic, or an immediate emergency (e.g., \"THERE IS SMOKE EVERYWHERE HELP WHERE DO I GO\"), you MUST bypass the standard triage process. DO NOT ask for their age or respiratory history. Instead, immediately provide a brief, calming, and directive response. When routing a user in distress, first call the `find_nearby_safe_places` tool with their coordinates to find a real-world safe location (like a library or safety center). Then, call `route_to_safe_area` with the exact coordinates and name of the best location you found. Your text response MUST explicitly state the name of the location you are routing them to and that the map route has been created.\n\n"
+            "**EMERGENCY / DISTRESS OVERRIDE (CRITICAL):** If the user's input indicates severe distress, panic, or an immediate emergency (e.g., \"THERE IS SMOKE EVERYWHERE HELP WHERE DO I GO\"), you MUST bypass the standard triage process. DO NOT ask for their age or respiratory history. Instead:\n"
+            "1. Call `find_nearby_safe_places` with the user's current coordinates.\n"
+            "2. From the results, select ONLY the 3 CLOSEST locations. For EACH, clearly state its name and whether it is currently OPEN or CLOSED (use the `opening_hours` or `open_now` field and the current time). If hours are not available, state 'Hours unknown'.\n"
+            "3. Do NOT list more than 3 locations. Only the 3 nearest.\n"
+            "4. Recommend the BEST currently OPEN location among those 3 and call `route_to_safe_area` with that location's coordinates.\n"
+            "5. Your text response MUST list exactly 3 locations with their open/closed status, clearly indicate which one you are routing to, and confirm the map route has been created.\n\n"
             "**CRITICAL DIRECTIVE:** You must NEVER calculate risk levels, diagnose conditions, or invent medical advice yourself. You MUST rely entirely on the external expert Machine Learning pipeline provided to you via the `assess_health_risk` tool.\n\n"
             "## Tool Availability\n"
             "You have access to a predictive triage model via the `assess_health_risk` tool.\n"
@@ -84,11 +90,11 @@ class OpenAIAgent:
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self.maps_key,
-            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location"
+            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.regularOpeningHours"
         }
         payload = {
             "includedTypes": ["library", "community_center", "shopping_mall", "hospital", "school"],
-            "maxResultCount": 3,
+            "maxResultCount": 10,
             "locationRestriction": {
                 "circle": {
                     "center": {
@@ -104,33 +110,67 @@ class OpenAIAgent:
             if response.status_code == 403:
                 print("DEBUG: Places API Disabled. Using Overpass API fallback.")
                 import urllib.parse
-                overpass_query = f'[out:json];node(around:5000,{lat},{lng})["amenity"~"library|hospital|clinic|community_centre"];out 3;'
-                try:
-                    op_resp = requests.get(f'http://overpass-api.de/api/interpreter?data={urllib.parse.quote(overpass_query)}')
-                    op_resp.raise_for_status()
-                    op_data = op_resp.json()
-                    results = []
-                    for el in op_data.get('elements', []):
-                        tags = el.get('tags', {})
-                        name = tags.get('name', 'Community Safe Center')
-                        results.append({
-                            "name": name,
-                            "address": f"{lat}, {lng} (approx)",
-                            "lat": el.get('lat'),
-                            "lng": el.get('lon')
-                        })
-                    if results:
-                        return {"places": results}
-                except Exception as op_err:
-                    print(f"DEBUG: Overpass API Call Failed: {str(op_err)}")
-                # absolute fallback if overpass also fails
+                
+                # Progressive search: try increasingly wider radii if not enough results
+                amenities = "library|hospital|clinic|community_centre|fire_station|police|place_of_worship|pharmacy|social_facility|shelter"
+                results = []
+                for radius in [5000, 10000, 15000]:
+                    overpass_query = f'[out:json];node(around:{radius},{lat},{lng})["amenity"~"{amenities}"];out 20;'
+                    try:
+                        op_resp = requests.get(f'http://overpass-api.de/api/interpreter?data={urllib.parse.quote(overpass_query)}')
+                        op_resp.raise_for_status()
+                        op_data = op_resp.json()
+                        seen_names = set()
+                        results = []
+                        for el in op_data.get('elements', []):
+                            tags = el.get('tags', {})
+                            name = tags.get('name')
+                            if not name or name in seen_names:
+                                continue  # Skip unnamed or duplicate locations
+                            seen_names.add(name)
+                            place_info = {
+                                "name": name,
+                                "address": f"{el.get('lat')}, {el.get('lon')} (approx)",
+                                "lat": el.get('lat'),
+                                "lng": el.get('lon'),
+                                "type": tags.get('amenity', 'unknown')
+                            }
+                            opening_hours = tags.get('opening_hours')
+                            if opening_hours:
+                                place_info["opening_hours"] = opening_hours
+                            else:
+                                place_info["opening_hours"] = "Not available"
+                            results.append(place_info)
+                        if len(results) >= 3:
+                            break  # We have enough
+                    except Exception as op_err:
+                        print(f"DEBUG: Overpass API Call Failed at radius {radius}: {str(op_err)}")
+                
+                if results:
+                    return {"places": results[:10]}
+                # absolute fallback if overpass also fails or returns nothing
                 return {
                     "places": [
                         {
                             "name": "Local Community Safe Center",
                             "address": "100 Relief Way",
                             "lat": lat + 0.01,
-                            "lng": lng - 0.02
+                            "lng": lng - 0.02,
+                            "opening_hours": "24/7"
+                        },
+                        {
+                            "name": "Emergency Fire Station",
+                            "address": "200 Safety Blvd",
+                            "lat": lat - 0.008,
+                            "lng": lng + 0.01,
+                            "opening_hours": "24/7"
+                        },
+                        {
+                            "name": "County Medical Center",
+                            "address": "300 Health Ave",
+                            "lat": lat + 0.005,
+                            "lng": lng + 0.015,
+                            "opening_hours": "24/7"
                         }
                     ]
                 }
@@ -139,12 +179,23 @@ class OpenAIAgent:
             places = data.get("places", [])
             results = []
             for p in places:
-                results.append({
+                place_info = {
                     "name": p.get("displayName", {}).get("text", "Unknown Place"),
                     "address": p.get("formattedAddress", ""),
                     "lat": p.get("location", {}).get("latitude"),
                     "lng": p.get("location", {}).get("longitude")
-                })
+                }
+                # Extract opening hours info
+                current_hours = p.get("currentOpeningHours", {})
+                if current_hours:
+                    place_info["open_now"] = current_hours.get("openNow", None)
+                    weekday_desc = current_hours.get("weekdayDescriptions", [])
+                    if weekday_desc:
+                        place_info["hours"] = "; ".join(weekday_desc)
+                else:
+                    place_info["open_now"] = None
+                    place_info["hours"] = "Hours not available"
+                results.append(place_info)
             return {"places": results}
         except Exception as e:
             print(f"DEBUG: Places API Call Failed: {str(e)}")
@@ -154,6 +205,25 @@ class OpenAIAgent:
         print(f"DEBUG: Generating response for: {prompt[:30]}... User Loc: {lat}, {lng}")
         
         system_content = self.system_prompt
+        
+        # Inject current time context
+        now = datetime.now()
+        system_content += (
+            f"\n\n**CURRENT TIME CONTEXT:** The current date and time is {now.strftime('%A, %B %d, %Y at %I:%M %p')} (local time). "
+            f"Use this to evaluate whether locations are currently open when presenting safe places to users."
+        )
+        
+        system_content += (
+            "\n\n**LOCATION PRESENTATION RULES:** When presenting safe locations to the user, you MUST:\n"
+            "1. Present EXACTLY 3 location options. Never present fewer or more than 3.\n"
+            "2. Choose the 3 CLOSEST locations from the tool results.\n"
+            "3. For each location, clearly state whether it is currently OPEN or CLOSED based on the opening_hours/open_now data and the current time.\n"
+            "4. Prioritize locations that are currently open. List open locations first.\n"
+            "5. If a location is closed, still include it but clearly mark it as closed and mention when it opens next if known.\n"
+            "6. For the recommended route (the one you call route_to_safe_area for), always choose the BEST location that is currently OPEN.\n"
+            "7. Format each location clearly with its name, open/closed status, and hours if available."
+        )
+        
         if lat is not None and lng is not None:
             system_content += (
                 f"\n\nCRITICAL: The user's CURRENT active coordinates are EXACTLY Lat {lat}, Lng {lng}. "
@@ -294,6 +364,16 @@ class OpenAIAgent:
                             lat=function_args.get("lat"),
                             lng=function_args.get("lng")
                         )
+                        # Emit all locations to the frontend for markers + routes
+                        if "places" in api_response:
+                            actions.append({
+                                "type": "set_all_safe_locations",
+                                "payload": {
+                                    "origin_lat": function_args.get("lat"),
+                                    "origin_lng": function_args.get("lng"),
+                                    "locations": api_response["places"]
+                                }
+                            })
                         messages.append({
                             "tool_call_id": tool_call.id,
                             "role": "tool",

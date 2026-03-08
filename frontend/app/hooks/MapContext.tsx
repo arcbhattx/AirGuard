@@ -7,6 +7,21 @@ export interface RouteData {
   destination: { lat: number; lng: number };
 }
 
+export interface SafeLocationMarker {
+  lat: number;
+  lng: number;
+  label: string;
+  isOpen: boolean | null;
+  isRecommended: boolean;
+}
+
+export interface MultiRoute {
+  path: google.maps.LatLngLiteral[];
+  color: string;
+  label: string;
+  isRecommended: boolean;
+}
+
 interface SafeZone {
   id: string | number;
   lat: number;
@@ -38,6 +53,12 @@ interface MapContextType {
   setCustomLocation: (location: { lat: number; lng: number } | null) => void;
   directionsRoute: RouteData | null;
   setDirectionsRoute: (route: RouteData | null) => void;
+  multiRoutes: MultiRoute[];
+  setMultiRoutes: (routes: MultiRoute[]) => void;
+  safeLocationMarkers: SafeLocationMarker[];
+  setSafeLocationMarkers: (markers: SafeLocationMarker[]) => void;
+  selectedRouteIndex: number | null;
+  setSelectedRouteIndex: (index: number | null) => void;
   mapInstance: google.maps.Map | null;
   setMapInstance: (map: google.maps.Map | null) => void;
 }
@@ -52,6 +73,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [customLocation, setCustomLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [directionsRoute, setDirectionsRoute] = useState<RouteData | null>(null);
+  const [multiRoutes, setMultiRoutes] = useState<MultiRoute[]>([]);
+  const [safeLocationMarkers, setSafeLocationMarkers] = useState<SafeLocationMarker[]>([]);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("airguard_last_coords");
@@ -75,7 +99,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, customLocation, setCenter, setZoom, panTo, setSafeZones, setAQICircles, setCustomLocation, directionsRoute, setDirectionsRoute, mapInstance, setMapInstance }}>
+    <MapContext.Provider value={{ center, zoom, safeZones, aqiCircles, customLocation, setCenter, setZoom, panTo, setSafeZones, setAQICircles, setCustomLocation, directionsRoute, setDirectionsRoute, multiRoutes, setMultiRoutes, safeLocationMarkers, setSafeLocationMarkers, selectedRouteIndex, setSelectedRouteIndex, mapInstance, setMapInstance }}>
       {children}
     </MapContext.Provider>
   );

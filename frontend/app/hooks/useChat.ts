@@ -9,7 +9,7 @@ import { User } from "@supabase/supabase-js";
 import { useMap } from "./MapContext";
 
 export function useChat(user: User | null, initialConversations: any[]) {
-  const { panTo, center, setSafeZones, setAQICircles, setDirectionsRoute, customLocation } = useMap();
+  const { panTo, center, setSafeZones, setAQICircles, setDirectionsRoute, customLocation, setMultiRoutes, setSafeLocationMarkers, setSelectedRouteIndex } = useMap();
   const [conversations, setConversations] = useState<any[]>(initialConversations);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -73,6 +73,26 @@ export function useChat(user: User | null, initialConversations: any[]) {
     setMessages(SAMPLE_MESSAGES); // Re-show greeting for fresh start
     setShowQuickReplies(true);
   }, []);
+
+  // Helper function to fetch a single OSRM route
+  const fetchOsrmRoute = async (originLat: number, originLng: number, destLat: number, destLng: number): Promise<google.maps.LatLngLiteral[] | null> => {
+    try {
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=full&geometries=polyline`;
+      const res = await fetch(osrmUrl);
+      const data = await res.json();
+      if (data.code === "Ok" && data.routes.length > 0) {
+        const decoded = window.google.maps.geometry.encoding.decodePath(data.routes[0].geometry);
+        return decoded.map((p: google.maps.LatLng) => ({ lat: p.lat(), lng: p.lng() }));
+      }
+    } catch (err) {
+      console.warn("OSRM route fetch failed for a location:", err);
+    }
+    // Fallback: straight line
+    return [
+      { lat: originLat, lng: originLng },
+      { lat: destLat, lng: destLng }
+    ];
+  };
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -165,8 +185,11 @@ export function useChat(user: User | null, initialConversations: any[]) {
       const aiResponseText = data.response;
       const actions = data.actions || [];
 
+      // Route colors for multi-route display
+      const routeColors = ["#01BAEF", "#FF6B35", "#7BC950", "#9B59B6", "#E74C3C"];
+
       // Execute actions
-      actions.forEach((action: any) => {
+      for (const action of actions) {
         if (action.type === "relocate_map") {
           panTo(action.payload.lat, action.payload.lng);
         } else if (action.type === "route_to_safe_area") {
@@ -177,6 +200,57 @@ export function useChat(user: User | null, initialConversations: any[]) {
             destination: { lat, lng }
           });
           panTo(lat, lng);
+        } else if (action.type === "set_all_safe_locations") {
+          const allLocations = action.payload.locations || [];
+          const originLat = action.payload.origin_lat || currentLat;
+          const originLng = action.payload.origin_lng || currentLng;
+
+          // Calculate distance and sort by closest, take top 3
+          const withDistance = allLocations.map((loc: any) => {
+            const dLat = loc.lat - originLat;
+            const dLng = loc.lng - originLng;
+            return { ...loc, distance: Math.sqrt(dLat * dLat + dLng * dLng) };
+          });
+          withDistance.sort((a: any, b: any) => a.distance - b.distance);
+          const locations = withDistance.slice(0, 3);
+
+          // Set markers for the 3 closest locations
+          const markers = locations.map((loc: any, idx: number) => ({
+            lat: loc.lat,
+            lng: loc.lng,
+            label: loc.name || `Location ${idx + 1}`,
+            isOpen: loc.open_now ?? null,
+            isRecommended: idx === 0,
+          }));
+          setSafeLocationMarkers(markers);
+
+          // Reset selection
+          setSelectedRouteIndex(null);
+
+          // Fetch OSRM routes for 3 closest locations in parallel
+          const routePromises = locations.map((loc: any) =>
+            fetchOsrmRoute(originLat, originLng, loc.lat, loc.lng)
+          );
+          const routePaths = await Promise.all(routePromises);
+          
+          const routes = routePaths
+            .map((path, idx) => {
+              if (!path) return null;
+              return {
+                path,
+                color: routeColors[idx % routeColors.length],
+                label: locations[idx].name || `Location ${idx + 1}`,
+                isRecommended: idx === 0,
+              };
+            })
+            .filter(Boolean) as any[];
+          
+          setMultiRoutes(routes);
+
+          // Zoom to fit all 3 markers
+          if (locations.length > 0) {
+            panTo(locations[0].lat, locations[0].lng);
+          }
         } else if (action.type === "set_safe_zones") {
           const formattedZones = action.payload.zones.map((z: any, idx: number) => ({
             id: `safe-${Date.now()}-${idx}`,
@@ -197,7 +271,7 @@ export function useChat(user: User | null, initialConversations: any[]) {
           }));
           setAQICircles(formattedCircles);
         }
-      });
+      }
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -230,7 +304,7 @@ export function useChat(user: User | null, initialConversations: any[]) {
       };
       setMessages((prev) => [...prev, errorMsg]);
     }
-  }, [activeConversationId, messages, supabase, user?.id, center, customLocation, panTo, setSafeZones, setAQICircles, setDirectionsRoute]);
+  }, [activeConversationId, messages, supabase, user?.id, center, customLocation, panTo, setSafeZones, setAQICircles, setDirectionsRoute, setMultiRoutes, setSafeLocationMarkers, setSelectedRouteIndex]);
 
   return {
     messages,

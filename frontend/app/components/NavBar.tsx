@@ -35,15 +35,7 @@ export default function NavBar({ user }: NavBarProps) {
         <Link href="/" className="text-sm font-semibold text-[#01BAEF] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
           Dashboard
         </Link>
-        <Link href="#" className="text-sm font-medium text-[#968E85] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
-          Sensors
-        </Link>
-        <Link href="#" className="text-sm font-medium text-[#968E85] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
-          Alerts
-        </Link>
-        <Link href="#" className="text-sm font-medium text-[#968E85] hover:text-[#0B4F6C] dark:hover:text-white transition-colors">
-          Settings
-        </Link>
+
 
         <div className="w-px h-6 bg-[#01BAEF]/20 mx-2" />
 
